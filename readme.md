@@ -9,3 +9,14 @@ https://blog.jerry-hong.com/series/rxjs
   - Filter等
 - 什么是Observable
 - 建立Observable(一)
+- 建立Observable(二)
+  - create
+  - of
+  - from
+  - fromEvent
+  - fromPromise
+  - never
+  - empty
+  - throw
+  - interval
+  - timer
