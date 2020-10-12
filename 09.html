@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <script src="./src/Rx.min.js"></script>
+</head>
+
+<body>
+  <script>
+    // 从0开始的
+    var source = Rx.Observable.interval(1000)
+    // // 跳过三个
+    // var example = source.skip(3)
+
+    // 必须等待执行6个，然后才能取出来后面的2个
+    // var example = source.take(6).takeLast(2)
+
+    // last 最后一个
+    // var example = source.take(6).last()
+
+    // concat可以合并
+    // 都是循序执行的
+    // var source2 = Rx.Observable.of(3)
+    // var source3 = Rx.Observable.of(4, 5, 6)
+    // // var example = source.take(3).concat(source2, source3);
+    // // 下面的方式也可以
+    // var example = Rx.Observable.concat(source, source2, source3);
+
+
+    // startWith 开始塞 添加在最前面
+    // var example=source.startWith(999)
+
+    // merge 合并 observable
+    var source = Rx.Observable.interval(500).take(3);
+    var source2 = Rx.Observable.interval(300).take(6);
+    // 多个同时处理，都结束才会结束
+    /**
+     * source : ----0----1----2|
+       source2: --0--1--2--3--4--5|
+                   merge()
+       example: --0-01--21-3--(24)--5|
+    */
+    var example = source.merge(source2); // 也可以当做静态方法使用 类似于或
+    // var example = Rx.Observable.concat(source,source2);
+    example.subscribe({
+      next: (value) => { console.log(value); },
+      error: (err) => { console.log('Error: ' + err); },
+      complete: () => { console.log('complete'); }
+    });
+  </script>
+</body>
+
+</html>

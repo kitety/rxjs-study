@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <script src="./src/Rx.min.js"></script>
+</head>
+
+<body>
+  <script>
+    //  combineLatest，它會取得各個 observable 最後送出的值
+    /*
+      source : ----0----1----2|
+      newest : --0--1--2--3--4--5|
+
+          combineLatest(newest, (x, y) => x + y);
+
+      example: ----01--23-4--(56)--7|
+    */
+    // var source = Rx.Observable.interval(500).take(3)
+    // var newest = Rx.Observable.interval(300).take(6)
+    // // 有值并且值更新才计算
+    // // combineLatest 很常用在運算多個因子的結果
+    // var example = source.combineLatest(newest, (x, y) => x + y)
+
+
+    // var source = Rx.Observable.interval(500).take(3)
+    // var newest = Rx.Observable.interval(300).take(6)
+    // // 分别在推出第n个数的时候触发 同时
+    // var example = source.zip(newest, (x, y) => x + y)
+
+
+    // withLatestFrom 運作方式跟 combineLatest 有點像，只是他有主從的關係，只有在主要的 observable 送出新的值時，才會執行 callback
+    // 间隔500ms输出一个字符
+    var main = Rx.Observable.from('hello').zip(Rx.Observable.interval(500), (x, y) => x);
+    // 间隔300ms输出一个数字
+    var some = Rx.Observable.from([0, 1, 0, 0, 0, 1]).zip(Rx.Observable.interval(300), (x, y) => x);
+
+    // main 输出的时候执行
+    var example = main.withLatestFrom(some, (x, y) => {
+      return y === 1 ? x.toUpperCase() : x;
+    });
+    example.subscribe({
+      next: (value) => { console.log(value); },
+      error: (err) => { console.log('Error: ' + err); },
+      complete: () => { console.log('complete'); }
+    });
+
+  </script>
+</body>
+
+</html>

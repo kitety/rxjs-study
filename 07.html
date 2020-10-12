@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <script src="./src/Rx.min.js"></script>
+</head>
+
+<body>
+  <script>
+    // operator 拿到原本的observable并且返回一个新的observable
+    var people = Rx.Observable.of('jerry', 'Anna')
+    function map(source, callback) {
+      return Rx.Observable.create(observer => {
+        return source.subscribe((value) => {
+          try {
+            observer.next(callback(value));
+          } catch (e) {
+            observer.error(e);
+          }
+        },
+          (err) => { observer.error(err); },
+          () => { observer.complete() })
+      })
+    }
+    // 放到prototype  改变this.subscribe
+    // Rx.Observable.prototype.map = map;
+    var helloPeople = map(people, (item) => item + ' Hello~');
+    // helloPeople.subscribe(console.log);
+
+    var source = Rx.Observable.interval(1000)
+    var newest = source.map(x => x + 2);
+    // var newest = source.mapTo(2);
+    // var newest = source.filter(x => x % 2 === 0)
+    console.log('newest: ', newest);
+
+    newest.subscribe(console.log);
+  </script>
+</body>
+
+</html>
