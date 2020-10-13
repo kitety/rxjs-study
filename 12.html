@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <script src="https://cdn.bootcdn.net/ajax/libs/rxjs/5.0.1/Rx.min.js"></script>
+
+</head>
+
+<body>
+  <button id="button">button</button>
+  <button id="addButton">Add</button>
+  <button id="minusButton">Minus</button>
+  <h1 id="state"></h1>
+  <script>
+    // var source = Rx.Observable.from('hello').zip(Rx.Observable.interval(600), (x, y) => x)
+    // var example = source.scan((origin, next) => origin + next, '')
+
+    // example.subscribe({
+    //   next: (value) => { console.log(value); },
+    //   error: (err) => { console.log('Error: ' + err); },
+    //   complete: () => { console.log('complete'); }
+    // });
+
+    const addButton = document.getElementById('addButton');
+    const minusButton = document.getElementById('minusButton');
+    const state = document.getElementById('state');
+
+    const addClick = Rx.Observable.fromEvent(addButton, 'click').mapTo(1)
+    const minusClick = Rx.Observable.fromEvent(minusButton, 'click').mapTo(-1)
+
+    const numberState = Rx.Observable.empty().startWith(0).merge(addClick, minusClick).scan((origin, next) => origin + next, 0)
+    numberState
+      .subscribe((value) => { state.innerHTML = value; });
+
+    // [0,1,2]
+    // [3,4,5]
+    // [6,7,8]
+    /*
+    source : --0--1--2--3--4--5--6--7..
+    source2: ---------0---------1--------...
+                buffer(source2)
+    example: ---------([0,1,2])---------([3,4,5])
+    */
+    //buffer 要传入一个observable(source2)，它会把原本的observable (source)送出的元素缓存在阵列中，等到传入的observable(source2) 送出元素时，就会触发把缓存的元素送出。
+    // var source = Rx.Observable.interval(300)
+    // var source2 = Rx.Observable.interval(1000)
+    // // source2 是每一秒就会送出一个元素
+    // var example = source.buffer(source2)
+
+    // var source = Rx.Observable.interval(300)
+    // var example = source.bufferTime(1000) // 时间缓存
+    // var example = source.bufferCount(3)//常量缓存，每3个
+
+
+    const button = document.getElementById('button')
+    const click = Rx.Observable.fromEvent(button, 'click')
+    /*
+    500ms 会触发一次，看是不是点击了两次
+    */
+    var example = click
+      .bufferTime(500)
+      .filter(arr => arr.length >= 2);
+    example.subscribe({
+      next: (value) => { console.log('success'); },
+      error: (err) => { console.log('Error: ' + err); },
+      complete: () => { console.log('complete'); }
+    });
+  </script>
+</body>
+
+</html>

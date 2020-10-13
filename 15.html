@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <script src="https://cdn.bootcdn.net/ajax/libs/rxjs/5.0.1/Rx.min.js"></script>
+</head>
+
+<body>
+  <script>
+    // var source = Rx.Observable.from(['a', 'b', 'c', 'a', 'b']).zip(Rx.Observable.interval(300), (x, y) => x)
+    // // 去重
+    // var example = source.distinct()
+
+    // var source = Rx.Observable.from([{ value: 'a' }, { value: 'b' }, { value: 'c' }, { value: 'a' }, { value: 'c' }])
+    //   .zip(Rx.Observable.interval(300), (x, y) => x);
+    // // 选择的是对象的value 传入一个函数 函数的值进行不重复
+    // // 内部 Set 注意大小
+    // var example = source.distinct((x) => {
+    //   return x.value
+    // });
+
+    // 可以传入第二个参数来清楚缓存的资料
+    // var source = Rx.Observable.from(['a', 'b', 'c', 'a', 'c'])
+    //   .zip(Rx.Observable.interval(300), (x, y) => x);
+    // var flushes = Rx.Observable.interval(300)
+    // // 300ms之后又可以清缓存  然后可以打印a
+    // var example = source.distinct(null, flushes);
+
+
+    // distinctUntilChanged 跟 distinct 一樣會把相同的元素過濾掉，但 distinctUntilChanged 只會跟最後一次送出的元素比較，不會每個都比 之和最后一个进行比较
+    var source = Rx.Observable.from(['a', 'b', 'c', 'c', 'b'])
+      .zip(Rx.Observable.interval(300), (x, y) => x);
+    var example = source.distinctUntilChanged()
+    example.subscribe({
+      next: (value) => { console.log(value); },
+      error: (err) => { console.log('Error: ' + err); },
+      complete: () => { console.log('complete'); }
+    });
+  </script>
+
+</body>
+
+</html>
