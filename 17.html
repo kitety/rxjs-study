@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <script src="https://cdn.bootcdn.net/ajax/libs/rxjs/5.0.1/Rx.min.js"></script>
+</head>
+
+<body>
+  111
+  <script>
+    // 二維的 Observable 改成一維的
+
+    // concatAll 处理完一个observable之后继续处理下一个observable
+    var click = Rx.Observable.fromEvent(document, 'click');
+    // 多次点击 多次触发，concatAll 会摊平为一维的
+    // concatAll 會一個一個處理，一定是等前一個 observable 完成(complete)才會處理下一個 observable
+    // 現在送出 observable 是無限的永遠不會完成(complete)，就導致他永遠不會處理第二個送出的 observable!
+    // var source = click.map(e => Rx.Observable.interval(1000));
+
+    // 只取前面三个 就是可以结束的了  然后多次也可以执行了
+
+    var source = click.map(e => Rx.Observable.interval(100).take(3));
+
+    var example = source.concatAll();
+
+    // switch  摊平observable为一维
+    // 永远处理新的observable，不管之前的完成与否，退订之前的
+    var source = click.map(e => Rx.Observable.interval(1000));
+
+    var example = source.switch();
+
+
+    // mergeAll 把二維的 observable 轉成一維的，同时处理所有的 observable
+    var source = click.map(e => Rx.Observable.interval(1000).take(3));
+    // 可以传入一个number，限制处理的数量,默认无限 还是有顺序的
+    // 传1 就和concatAll一样
+    var example = source.mergeAll(2);
+    example.subscribe({
+      next: (value) => { console.log(value); },
+      error: (err) => { console.log('Error: ' + err); },
+      complete: () => { console.log('complete'); }
+    });
+  </script>
+
+
+</body>
+
+</html>

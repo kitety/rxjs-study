@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <script src="https://cdn.bootcdn.net/ajax/libs/rxjs/5.0.1/Rx.min.js"></script>
+</head>
+
+<body>
+  <script>
+    // concatMap map加上comcatAll。有顺序的执行，先执行完了前面的才会后面的
+    var source = Rx.Observable.fromEvent(document, 'click');
+
+    // var example = source
+    //   .map(e => Rx.Observable.interval(1000).take(3))
+    //   .concatAll();
+
+    // var example = source
+    //   .concatMap(
+    //     e => Rx.Observable.interval(100).take(5)
+    //   );
+
+    function getPostData() {
+      return fetch('https://jsonplaceholder.typicode.com/posts/1')
+        .then(res => res.json())
+    }
+    // 有顺序的执行
+    /*
+    concatMap 還有第二個參數是一個 selector callback，這個 callback 會傳入四個參數，分別是
+
+    外部 observable 送出的元素
+    內部 observable 送出的元素
+    外部 observable 送出元素的 index
+    內部 observable 送出元素的 index
+    */
+    var example = source.concatMap(
+      e => Rx.Observable.from(getPostData()), (e, res, eIndex, resIndex) => {
+        // console.log('e, res, eIndex, resIndex: ', e, res, eIndex, resIndex);
+        return res.title
+      })
+
+
+    // switchMap map 加上 switch
+    // var example = source
+    //   .map(e => Rx.Observable.interval(1000).take(3))
+    //   .switch();
+    var example = source
+      .switchMap(
+        e => Rx.Observable.interval(100).take(3)
+      );
+
+
+
+    // mergeMap  map 加上 mergeAll
+    // var example = source
+    //     .map(e => Rx.Observable.interval(1000).take(3))
+    //     .mergeAll();
+
+    // 可以传入第三个参数控制数量
+    var example = source
+      .mergeMap(
+        e => Rx.Observable.interval(1000).take(3)
+      );
+    example.subscribe({
+      next: (value) => { console.log(value); },
+      error: (err) => { console.log('Error: ' + err); },
+      complete: () => { console.log('complete'); }
+    });
+    // 这三个operators可以把第一个参数所回传的promise物件直接转成observable
+  </script>
+
+
+</body>
+
+</html>

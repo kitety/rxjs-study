@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <script src="https://cdn.bootcdn.net/ajax/libs/rxjs/5.0.1/Rx.min.js"></script>
+</head>
+
+<body>
+  <div id="title"></div>
+  <script>
+    var source = Rx.Observable.from(['a', 'b', 'c', 'd', 2])
+      .zip(Rx.Observable.interval(500), (x, y) => x)
+
+    // catch 生成Observable
+    // var example = source.map(x => x.toUpperCase())
+    //   .catch(error => Rx.Observable.of('h'))
+
+
+    // catch 空的empty
+    // var example = source.map(x => x.toUpperCase())
+    //   .catch(error => Rx.Observable.empty())
+
+    // catch 第二个参数接受当前的observable对象，可以直接返回，重新执行
+    // 每次都重新执行 一直循环
+    // var example = source.map(x => x.toUpperCase())
+    //   .catch((error, c) => c)
+
+    // 错误就retry   retry 重新执行
+    // var example = source.map(x => x.toUpperCase())
+    //   .retry()
+
+    // retry 可以设置重试次数
+    // var example = source.map(x => x.toUpperCase())
+    //   .retry(1)
+
+    // retryWhen
+    // 一个回调，接受一个由error组成的Observable 并且会循环
+    // 1只打印1次
+    var example = source.map(x => x.toUpperCase())
+      .retryWhen(errorObs => { console.log(123456); return errorObs.delay(1000) });
+    // var example = source.map(x => x.toUpperCase())
+    //   .retryWhen(
+    //     errorObs => errorObs.map(err => fetch('...')));
+
+
+
+
+    // repeat 重复 传入次数就按次数，否则就是无限
+    //
+    var source = Rx.Observable.from(['a', 'b', 'c'])
+      .zip(Rx.Observable.interval(500), (x, y) => x);
+
+    var example = source.repeat();
+
+
+    const title = document.getElementById('title');
+
+    var source = Rx.Observable.from(['a', 'b', 'c', 'd', 2])
+      .zip(Rx.Observable.interval(500), (x, y) => x)
+      .map(x => x.toUpperCase());
+    // 通常 source 會是建立即時同步的連線，像是 web socket
+
+    var example = source.catch(
+      (error, obs) => Rx.Observable.empty()
+        .startWith('連線發生錯誤： 5秒後重連')
+        .concat(obs.delay(5000))
+    );
+    example.subscribe({
+      next: (value) => { console.log(value); title.innerText = value },
+      error: (err) => { console.log('Error: ' + err); },
+      complete: () => { console.log('complete'); }
+    });
+  </script>
+
+</body>
+
+</html>
