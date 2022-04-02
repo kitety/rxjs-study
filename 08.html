@@ -1,81 +1,82 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/5.0.1/Rx.min.js"></script>
+    <style type="text/css">
+      html,
+      body {
+        height: 100%;
+        background-color: tomato;
+        position: relative;
+      }
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
-  <script src="https://cdn.bootcdn.net/ajax/libs/rxjs/5.0.1/Rx.min.js"></script>
-  <style type="text/css">
-    html,
-    body {
-      height: 100%;
-      background-color: tomato;
-      position: relative;
-    }
+      #drag {
+        position: absolute;
+        display: inline-block;
+        width: 100px;
+        height: 100px;
+        background-color: #fff;
+        cursor: all-scroll;
+      }
+    </style>
+  </head>
 
-    #drag {
-      position: absolute;
-      display: inline-block;
-      width: 100px;
-      height: 100px;
-      background-color: #fff;
-      cursor: all-scroll;
-    }
-  </style>
-</head>
+  <body>
+    <div id="drag"></div>
+    <script>
+      var source = Rx.Observable.interval(1000);
+      // take取前面n个
+      // var example = source.take(3)
 
-<body>
-  <div id="drag"></div>
-  <script>
-    var source = Rx.Observable.interval(1000)
-    // take取前面n个
-    // var example = source.take(3)
+      // first 取出第一个之后就结束
+      // var example = source.first()
 
-    // first 取出第一个之后就结束
-    // var example = source.first()
+      // takeUntil 在某件事情发生的时候，让rx对象执行complete事件
 
-    // takeUntil 在某件事情发生的时候，让rx对象执行complete事件
+      // var click = Rx.Observable.fromEvent(document, 'click')
+      // var example = source.takeUntil(click)
 
-    // var click = Rx.Observable.fromEvent(document, 'click')
-    // var example = source.takeUntil(click)
+      // 有时我们的Observable送出的元素又是一个observable，就像是二维阵列，阵列里面的元素是阵列，这时我们就可以用concatAll把它摊平成一维阵列，大家也可以直接把concatAll想成把所有元素concat起来。
+      // var click = Rx.Observable.fromEvent(document, 'click')
+      // var source = click.map(e => Rx.Observable.of(1, 2, 3))
+      // var example = source.concatAll()
 
-    // 有时我们的Observable送出的元素又是一个observable，就像是二维阵列，阵列里面的元素是阵列，这时我们就可以用concatAll把它摊平成一维阵列，大家也可以直接把concatAll想成把所有元素concat起来。
-    // var click = Rx.Observable.fromEvent(document, 'click')
-    // var source = click.map(e => Rx.Observable.of(1, 2, 3))
-    // var example = source.concatAll()
+      var obs1 = Rx.Observable.interval(1000).take(4);
+      var obs2 = Rx.Observable.interval(500).take(2);
+      var obs3 = Rx.Observable.interval(2000).take(1);
 
-    var obs1 = Rx.Observable.interval(1000).take(4);
-    var obs2 = Rx.Observable.interval(500).take(2);
-    var obs3 = Rx.Observable.interval(2000).take(1);
+      var source = Rx.Observable.of(obs1, obs2, obs3);
+      // 先 obs1 obs2 obs3
+      var example = source.concatAll();
+      // example.subscribe({
+      //   next: (value) => { console.log(value); },
+      //   error: (err) => { console.log('Error: ' + err); },
+      //   complete: () => { console.log('complete'); }
+      // });
+    </script>
+    <script>
+      var body = document.body;
+      var dragDom = document.getElementById("drag");
 
-    var source = Rx.Observable.of(obs1, obs2, obs3);
-    // 先 obs1 obs2 obs3
-    var example = source.concatAll();
-    // example.subscribe({
-    //   next: (value) => { console.log(value); },
-    //   error: (err) => { console.log('Error: ' + err); },
-    //   complete: () => { console.log('complete'); }
-    // });
-  </script>
-  <script>
-    var body = document.body;
-    var dragDom = document.getElementById('drag')
-
-    var mouseDown = Rx.Observable.fromEvent(dragDom, 'mousedown')
-    var mouseUp = Rx.Observable.fromEvent(body, 'mouseup')
-    var mouseMove = Rx.Observable.fromEvent(body, 'mousemove')
-    // down的时候转换为move，并且在up之后停止,摊平
-    var source = mouseDown.map(() => mouseMove.takeUntil(mouseUp)).concatAll()
-    source.map(m => ({
-      x: m.clientX,
-      y: m.clientY
-    })).subscribe(pos => {
-      document.getElementById('drag').style.left = pos.x + 'px';
-      document.getElementById('drag').style.top = pos.y + 'px';
-    })
-
-  </script>
-</body>
-
+      var mouseDown = Rx.Observable.fromEvent(dragDom, "mousedown");
+      var mouseUp = Rx.Observable.fromEvent(body, "mouseup");
+      var mouseMove = Rx.Observable.fromEvent(body, "mousemove");
+      // down的时候转换为move，并且在up之后停止,摊平
+      var source = mouseDown
+        .map(() => mouseMove.takeUntil(mouseUp))
+        .concatAll();
+      source
+        .map((m) => ({
+          x: m.clientX,
+          y: m.clientY,
+        }))
+        .subscribe((pos) => {
+          dragDom.style.left = pos.x + "px";
+          dragDom.style.top = pos.y + "px";
+        });
+    </script>
+  </body>
 </html>

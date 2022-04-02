@@ -1,69 +1,94 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/5.0.1/Rx.min.js"></script>
+    <style>
+      img {
+        position: absolute;
+        border-radius: 50%;
+        border: 3px white solid;
+        transform: translate3d(0, 0, 0);
+        width: 50px;
+        height: 50px;
+        will-change: transform;
+      }
+    </style>
+  </head>
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
-  <script src="https://cdn.bootcdn.net/ajax/libs/rxjs/5.0.1/Rx.min.js"></script>
-  <style>
-    img {
-      position: absolute;
-      border-radius: 50%;
-      border: 3px white solid;
-      transform: translate3d(0, 0, 0);
-      width: 50px;
-      height: 50px;
-      will-change: transform;
-    }
-  </style>
-</head>
+  <body>
+    <img
+      src="https://res.cloudinary.com/dohtkyi84/image/upload/c_scale,w_50/v1483019072/head-cover6.jpg"
+      alt=""
+    />
+    <img
+      src="https://res.cloudinary.com/dohtkyi84/image/upload/c_scale,w_50/v1483019072/head-cover5.jpg"
+      alt=""
+    />
+    <img
+      src="https://res.cloudinary.com/dohtkyi84/image/upload/c_scale,w_50/v1483019072/head-cover4.jpg"
+      alt=""
+    />
+    <img
+      src="https://res.cloudinary.com/dohtkyi84/image/upload/c_scale,w_50/v1483019072/head-cover3.jpg"
+      alt=""
+    />
+    <img
+      src="https://res.cloudinary.com/dohtkyi84/image/upload/c_scale,w_50/v1483019072/head-cover2.jpg"
+      alt=""
+    />
+    <img
+      src="https://res.cloudinary.com/dohtkyi84/image/upload/c_scale,w_50/v1483019072/head-cover1.jpg"
+      alt=""
+    />
+    <script>
+      var source = Rx.Observable.interval(300).take(5);
+      // 每次都延迟500ms
+      // var example = source.delay(500)
+      // 指定一个时间
+      var example = source.delay(new Date(new Date().getTime() + 3000));
 
-<body>
-  <img src="https://res.cloudinary.com/dohtkyi84/image/upload/c_scale,w_50/v1483019072/head-cover6.jpg" alt="">
-  <img src="https://res.cloudinary.com/dohtkyi84/image/upload/c_scale,w_50/v1483019072/head-cover5.jpg" alt="">
-  <img src="https://res.cloudinary.com/dohtkyi84/image/upload/c_scale,w_50/v1483019072/head-cover4.jpg" alt="">
-  <img src="https://res.cloudinary.com/dohtkyi84/image/upload/c_scale,w_50/v1483019072/head-cover3.jpg" alt="">
-  <img src="https://res.cloudinary.com/dohtkyi84/image/upload/c_scale,w_50/v1483019072/head-cover2.jpg" alt="">
-  <img src="https://res.cloudinary.com/dohtkyi84/image/upload/c_scale,w_50/v1483019072/head-cover1.jpg" alt="">
-  <script>
-    var source = Rx.Observable.interval(300).take(5)
-    // 每次都延迟500ms
-    // var example = source.delay(500)
-    // 指定一个时间
-    var example = source.delay(new Date(new Date().getTime() + 3000));
-
-    /*
+      /*
     delayWhen 可以影响每个元素，并且传一个魂穿Observable的函数
     */
-    source = Rx.Observable.interval(300).take(100);
+      source = Rx.Observable.interval(300).take(100);
 
-    // 可以对每一个做不同程度的延迟
-    example = source
-      .delayWhen(
-        x => Rx.Observable.empty().delay(100 * x * x)
+      // 可以对每一个做不同程度的延迟
+      example = source.delayWhen((x) =>
+        Rx.Observable.empty().delay(100 * x * x)
       );
-    example.subscribe({
-      next: (value) => { console.log(value); },
-      error: (err) => { console.log('Error: ' + err); },
-      complete: () => { console.log('complete'); }
-    });
+      example.subscribe({
+        next: (value) => {
+          console.log(value);
+        },
+        error: (err) => {
+          console.log("Error: " + err);
+        },
+        complete: () => {
+          console.log("complete");
+        },
+      });
 
-
-    var imgList = document.getElementsByTagName('img');
-    var movePos = Rx.Observable.fromEvent(document, 'mousemove').map(e => ({ x: e.clientX, y: e.clientY }))
-    function followMouse(domArr) {
-      const delay = 600
-      domArr.forEach((item, index) => {
-        // 同一个MovePos 进行delay转换为Observable的延时动画
-        movePos.delay(delay * (Math.pow(0.65, index) + Math.cos(index / 4)) / 2)
-          .subscribe(pos => {
-            item.style.transform = 'translate3d(' + pos.x + 'px, ' + pos.y + 'px, 0)';
-          })
-      })
-    }
-    followMouse(Array.from(imgList))
-  </script>
-</body>
-
+      var imgList = document.getElementsByTagName("img");
+      var movePos = Rx.Observable.fromEvent(document, "mousemove").map((e) => ({
+        x: e.clientX,
+        y: e.clientY,
+      }));
+      function followMouse(domArr) {
+        const delay = 600;
+        domArr.forEach((item, index) => {
+          // 同一个MovePos 进行delay转换为Observable的延时动画
+          movePos
+            .delay((delay * (Math.pow(0.65, index) + Math.cos(index / 4))) / 2)
+            .subscribe((pos) => {
+              item.style.transform =
+                "translate3d(" + pos.x + "px, " + pos.y + "px, 0)";
+            });
+        });
+      }
+      followMouse(Array.from(imgList));
+    </script>
+  </body>
 </html>

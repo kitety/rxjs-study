@@ -1,92 +1,98 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/5.0.1/Rx.min.js"></script>
+    <style>
+      html,
+      body {
+        height: 100%;
+        background-color: white;
+        padding: 0;
+        margin: 0;
+      }
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
-  <script src="https://cdn.bootcdn.net/ajax/libs/rxjs/5.0.1/Rx.min.js"></script>
-  <style>
-    html,
-    body {
-      height: 100%;
-      background-color: white;
-      padding: 0;
-      margin: 0;
-    }
+      .autocomplete {
+        position: relative;
+        display: inline-block;
+        margin: 20px;
+      }
 
-    .autocomplete {
-      position: relative;
-      display: inline-block;
-      margin: 20px;
-    }
+      .input {
+        width: 200px;
+        border: none;
+        border-bottom: 1px solid black;
 
-    .input {
-      width: 200px;
-      border: none;
-      border-bottom: 1px solid black;
+        padding: 0;
+        line-height: 24px;
+        font-size: 16px;
+      }
 
-      padding: 0;
-      line-height: 24px;
-      font-size: 16px;
-    }
+      .input:focus {
+        outline: none;
+        border-bottom-color: blue;
+      }
 
-    .input:focus {
-      outline: none;
-      border-bottom-color: blue;
-    }
+      .suggest {
+        width: 200px;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
 
-    .suggest {
-      width: 200px;
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    }
+      .suggest li {
+        cursor: pointer;
+        padding: 5px;
+      }
 
-    .suggest li {
-      cursor: pointer;
-      padding: 5px;
+      .suggest li:hover {
+        background-color: lightblue;
+      }
+    </style>
+  </head>
 
-    }
+  <body>
+    <div class="autocomplete">
+      <input class="input" type="search" id="search" autocomplete="off" />
+      <ul id="suggest-list" class="suggest"></ul>
+    </div>
+    <script>
+      var url =
+        "https://zh.wikipedia.org/w/api.php?action=opensearch&format=json&limit=5&origin=*";
 
-    .suggest li:hover {
-      background-color: lightblue;
-    }
-  </style>
-</head>
+      var getSuggestList = (keyword) =>
+        fetch(url + "&search=" + keyword, { method: "GET", mode: "cors" }).then(
+          (res) => res.json()
+        );
 
-<body>
-  <div class="autocomplete">
-    <input class="input" type="search" id="search" autocomplete="off">
-    <ul id="suggest-list" class="suggest">
-    </ul>
-  </div>
-  <script>
+      var render = (suggestArr = []) => {
+        suggestList.innerHTML = suggestArr
+          .map((item) => "<li>" + item + "</li>")
+          .join("");
+      };
+      var searchInput = document.getElementById("search");
+      var suggestList = document.getElementById("suggest-list");
 
-    var url = 'https://zh.wikipedia.org/w/api.php?action=opensearch&format=json&limit=5&origin=*';
+      var keyword = Rx.Observable.fromEvent(searchInput, "input");
+      var selectItem = Rx.Observable.fromEvent(suggestList, "click");
 
-    var getSuggestList = (keyword) => fetch(url + '&search=' + keyword, { method: 'GET', mode: 'cors' })
-      .then(res => res.json())
-
-    var render = (suggestArr = []) => {
-      suggestList.innerHTML = suggestArr.map(item => '<li>' + item + '</li>').join('')
-    }
-    var searchInput = document.getElementById("search")
-    var suggestList = document.getElementById("suggest-list")
-
-    var keyword = Rx.Observable.fromEvent(searchInput, 'input')
-    var selectItem = Rx.Observable.fromEvent(suggestList, 'click');
-
-    keyword.debounceTime(100).switchMap(e => getSuggestList(e.target.value), (e, res) => res[1]).subscribe(list => render(list))
-    selectItem.filter(e => e.target.matches('li')).map(e => e.target.innerText)
-      .subscribe(text => {
-        searchInput.value = text;
-        render();
-      })
-  </script>
-
-
-</body>
-
+      keyword
+        .debounceTime(100)
+        .switchMap(
+          (e) => getSuggestList(e.target.value),
+          (e, res) => res[1]
+        )
+        .subscribe((list) => render(list));
+      selectItem
+        .filter((e) => e.target.matches("li"))
+        .map((e) => e.target.innerText)
+        .subscribe((text) => {
+          searchInput.value = text;
+          render();
+        });
+    </script>
+  </body>
 </html>

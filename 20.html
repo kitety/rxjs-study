@@ -1,77 +1,70 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/5.0.1/Rx.min.js"></script>
+  </head>
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
-  <script src="https://cdn.bootcdn.net/ajax/libs/rxjs/5.0.1/Rx.min.js"></script>
+  <body>
+    <script>
+      // window 要傳入一個 observable，每當這個 observable 送出元素時，就會把正在處理的 observable 所送出的元素放到新的 observable 中並送出，這裡看 Marble Diagram 會比較好解釋
+      var click = Rx.Observable.fromEvent(document, "click");
+      var source = Rx.Observable.interval(1000);
+      var example = source.window(click);
 
-</head>
+      // example
+      //   .switch()
+      //   .subscribe(console.log);
 
-<body>
+      // 每隔1秒打印点击的次数
+      // var example = click.window(source)
+      // example
+      //   .map(innerObservable => innerObservable.count())
+      //   .switch()
+      //   .subscribe(console.log);
 
-  <script>
-    // window 要傳入一個 observable，每當這個 observable 送出元素時，就會把正在處理的 observable 所送出的元素放到新的 observable 中並送出，這裡看 Marble Diagram 會比較好解釋
-    var click = Rx.Observable.fromEvent(document, 'click');
-    var source = Rx.Observable.interval(1000);
-    var example = source.window(click);
+      // windowToggle 不像window 只能控制内部observable 的结束，windowToggle 可以传入两个参数，第一个是开始的observable，第二个是一个callback 可以回传一个结束的observable
+      var source = Rx.Observable.interval(1000);
+      var mouseDown = Rx.Observable.fromEvent(document, "mousedown");
+      var mouseUp = Rx.Observable.fromEvent(document, "mouseup");
 
-    // example
-    //   .switch()
-    //   .subscribe(console.log);
+      var example = source.windowToggle(mouseDown, () => mouseUp).switch();
 
-    // 每隔1秒打印点击的次数
-    // var example = click.window(source)
-    // example
-    //   .map(innerObservable => innerObservable.count())
-    //   .switch()
-    //   .subscribe(console.log);
+      // example.subscribe(console.log);
 
-    // windowToggle 不像window 只能控制内部observable 的结束，windowToggle 可以传入两个参数，第一个是开始的observable，第二个是一个callback 可以回传一个结束的observable
-    var source = Rx.Observable.interval(1000);
-    var mouseDown = Rx.Observable.fromEvent(document, 'mousedown');
-    var mouseUp = Rx.Observable.fromEvent(document, 'mouseup');
+      //  groupBy，它可以帮我们把相同条件的元素拆分成一个Observable
+      var source = Rx.Observable.interval(300).take(5);
 
-    var example = source
-      .windowToggle(mouseDown, () => mouseUp)
-      .switch();
+      var example = source.groupBy((x) => x % 2);
 
-    // example.subscribe(console.log);
-
-    //  groupBy，它可以帮我们把相同条件的元素拆分成一个Observable
-    var source = Rx.Observable.interval(300).take(5);
-
-    var example = source
-      .groupBy(x => x % 2);
-
-    example.subscribe(console.log);
-    // 总分数
-    var people = [
-      { name: 'Anna', score: 100, subject: 'English' },
-      { name: 'Anna', score: 90, subject: 'Math' },
-      { name: 'Anna', score: 96, subject: 'Chinese' },
-      { name: 'Jerry', score: 80, subject: 'English' },
-      { name: 'Jerry', score: 100, subject: 'Math' },
-      { name: 'Jerry', score: 90, subject: 'Chinese' },
-    ];
-    var source = Rx.Observable.from(people)
-      .zip(
+      example.subscribe(console.log);
+      // 总分数
+      var people = [
+        { name: "Anna", score: 100, subject: "English" },
+        { name: "Anna", score: 90, subject: "Math" },
+        { name: "Anna", score: 96, subject: "Chinese" },
+        { name: "Jerry", score: 80, subject: "English" },
+        { name: "Jerry", score: 100, subject: "Math" },
+        { name: "Jerry", score: 90, subject: "Chinese" },
+      ];
+      var source = Rx.Observable.from(people).zip(
         Rx.Observable.interval(300),
-        (x, y) => x);
+        (x, y) => x
+      );
 
-    var example = source
-      .groupBy(person => person.name)
-      .map(group => group.reduce((acc, curr) => ({
-        name: curr.name,
-        score: curr.score + acc.score
-      })))
-      .mergeAll();
+      var example = source
+        .groupBy((person) => person.name)
+        .map((group) =>
+          group.reduce((acc, curr) => ({
+            name: curr.name,
+            score: curr.score + acc.score,
+          }))
+        )
+        .mergeAll();
 
-    example.subscribe(console.log);
-  </script>
-
-
-</body>
-
+      example.subscribe(console.log);
+    </script>
+  </body>
 </html>

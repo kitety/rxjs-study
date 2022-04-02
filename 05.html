@@ -1,58 +1,69 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/5.0.1/Rx.min.js"></script>
+  </head>
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
-  <script src="https://cdn.bootcdn.net/ajax/libs/rxjs/5.0.1/Rx.min.js"></script>
-</head>
+  <body>
+    <script>
+      // var observable = Rx.Observable.create(function (observer) {
+      //   observer.next('Jerry')
+      //   observer.next('anna')
+      //   setTimeout(() => {
+      //     observer.next('RxJS 30 Days!');
+      //   }, 30)
+      // })
 
-<body>
-  <script>
-    // var observable = Rx.Observable.create(function (observer) {
-    //   observer.next('Jerry')
-    //   observer.next('anna')
-    //   setTimeout(() => {
-    //     observer.next('RxJS 30 Days!');
-    //   }, 30)
-    // })
-
-    // console.log('observable: ', observable);
-    // console.log('start');
-    // observable.subscribe(function (value) {
-    //   console.log(value);
-    // });
-    // console.log('end');
-    var observable = Rx.Observable.create(function (observer) {
-      observer.next('Jerry')
-      observer.next('Anna')
-      observer.complete();
-      observer.next('not work')
-
-    })
-    // 错误的例子
-    // var observable = Rx.Observable
-    //     .create(function (observer) {
-    //       try {
-    //         observer.next('Jerry');
-    //         observer.next('Anna');
-    //         throw 'some exception';
-    //       } catch (e) {
-    //         observer.error(e)
-    //       }
-    //     });
-    var observer = {
-      next: v => { console.log(v) },
-      error: v => { console.log('error', v) },
-      complete: v => { console.log('complete') },
-    }
-    // observable.subscribe(observer)
-    // 等价于
-    observable.subscribe(value => { console.log(value); },
-      error => { console.log('Error: ', error); },
-      () => { console.log('complete') })
-  </script>
-</body>
-
+      // console.log('observable: ', observable);
+      // console.log('start');
+      // observable.subscribe(function (value) {
+      //   console.log(value);
+      // });
+      // console.log('end');
+      var observable = Rx.Observable.create(function (observer) {
+        observer.next("Jerry");
+        observer.next("Anna");
+        observer.complete();
+        observer.next("not work");
+      });
+      // 输出错误的例子
+      // var observable = Rx.Observable
+      //     .create(function (observer) {
+      //       try {
+      //         observer.next('Jerry');
+      //         observer.next('Anna');
+      //         throw 'some exception';
+      //       } catch (e) {
+      //         observer.error(e)
+      //       }
+      //     });
+      var observer = {
+        next: (v) => {
+          console.log(v);
+        },
+        error: (v) => {
+          console.log("error", v);
+        },
+        complete: (v) => {
+          console.log("complete");
+        },
+      };
+      // observable.subscribe(observer)
+      // 等价于
+      observable.subscribe(
+        (value) => {
+          console.log(value);
+        },
+        (error) => {
+          console.log("Error: ", error);
+        },
+        () => {
+          console.log("complete");
+        }
+      );
+    </script>
+  </body>
 </html>
