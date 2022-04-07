@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>30 天精通 RxJS (28)：Scheduler 基本觀念</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/5.0.1/Rx.min.js"></script>
+  </head>
+
+  <body>
+    <script>
+      /*
+      queue
+      asap
+      async
+      animationFrame
+      */
+      var observable = Rx.Observable.create(function (observer) {
+        observer.next(1);
+        observer.next(2);
+        observer.next(3);
+        observer.complete();
+      });
+
+      console.log("before subscribe");
+      observable
+        .observeOn(Rx.Scheduler.async) // 設為 async
+        .subscribe({
+          next: (value) => {
+            console.log(value);
+          },
+          error: (err) => {
+            console.log("Error: " + err);
+          },
+          complete: () => {
+            console.log("complete");
+          },
+        });
+      console.log("after subscribe");
+    </script>
+  </body>
+</html>

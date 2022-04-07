@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/5.0.1/Rx.min.js"></script>
+  </head>
+
+  <body>
+    <script>
+      // const source = Rx.Observable.interval(1000);
+      // const subject = new Rx.Subject();
+
+      // const example = subject.map((x) => {
+      //   if (x === 1) {
+      //     throw new Error("oops");
+      //   }
+      //   return x;
+      // });
+      // subject.subscribe(
+      //   (x) => console.log("A", x),
+      //   (error) => console.log("A Error:" + error)
+      // );
+      // example.subscribe(
+      //   (x) => console.log("B", x),
+      //   (error) => console.log("B Error:" + error)
+      // );
+      // subject.subscribe(
+      //   (x) => console.log("C", x),
+      //   (error) => console.log("C Error:" + error)
+      // );
+
+      // source.subscribe(subject);
+
+      // const source = Rx.Observable.interval(1000);
+      // const subject = new Rx.Subject().observeOn(Rx.Scheduler.asap);
+
+      // const example = subject.map((x) => {
+      //   if (x === 1) {
+      //     throw new Error("oops");
+      //   }
+      //   return x;
+      // });
+      // subject.subscribe((x) => console.log("A", x));
+      // example.subscribe((x) => console.log("B", x));
+      // subject.subscribe((x) => console.log("C", x));
+
+      // source.subscribe(subject);
+
+      var result = Rx.Observable.interval(1000)
+        .take(6)
+        .map((x) => Math.random())
+        .multicast(new Rx.Subject())
+        .refCount();
+
+      var subA = result.subscribe((x) => console.log("A: " + x));
+      var subB = result.subscribe((x) => console.log("B: " + x));
+    </script>
+  </body>
+</html>

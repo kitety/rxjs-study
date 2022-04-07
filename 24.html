@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/5.0.1/Rx.min.js"></script>
+  </head>
+
+  <body>
+    <script>
+            // var source = Rx.Observable.interval(1000).take(3);
+
+            // var observerA = {
+            //   next: (value) => console.log("A next: " + value),
+            //   error: (error) => console.log("A error: " + error),
+            //   complete: () => console.log("A complete!"),
+            // };
+
+            // var observerB = {
+            //   next: (value) => console.log("B next: " + value),
+            //   error: (error) => console.log("B error: " + error),
+            //   complete: () => console.log("B complete!"),
+            // };
+
+            // var subject = new Rx.Subject();
+
+            // subject.subscribe(observerA);
+
+            // source.subscribe(subject);
+
+            // setTimeout(() => {
+            //   subject.subscribe(observerB);
+            // }, 1000);
+
+            // multicast 可以用来挂载subject 并回传一个可连结(connectable)的observable
+            // var source = Rx.Observable.interval(1000)
+            //   .take(3)
+            //   .multicast(new Rx.Subject());
+
+            // var observerA = {
+            //   next: (value) => console.log("A next: " + value),
+            //   error: (error) => console.log("A error: " + error),
+            //   complete: () => console.log("A complete!"),
+            // };
+
+            // var observerB = {
+            //   next: (value) => console.log("B next: " + value),
+            //   error: (error) => console.log("B error: " + error),
+            //   complete: () => console.log("B complete!"),
+            // };
+
+            // source.subscribe(observerA); // subject.subscribe(observerA)
+
+            // source.connect(); // source.subscribe(subject)
+
+            // setTimeout(() => {
+            //   source.subscribe(observerB); // subject.subscribe(observerB)
+            // }, 1000);
+
+            // var source = Rx.Observable.interval(1000)
+            //   .do((x) => console.log("send: " + x))
+            //   .multicast(new Rx.Subject()); // 無限的 observable
+
+            // var observerA = {
+            //   next: (value) => console.log("A next: " + value),
+            //   error: (error) => console.log("A error: " + error),
+            //   complete: () => console.log("A complete!"),
+            // };
+
+            // var observerB = {
+            //   next: (value) => console.log("B next: " + value),
+            //   error: (error) => console.log("B error: " + error),
+            //   complete: () => console.log("B complete!"),
+            // };
+
+            // var subscriptionA = source.subscribe(observerA);
+
+            // var realSubscription = source.connect();
+
+            // var subscriptionB;
+            // setTimeout(() => {
+            //   subscriptionB = source.subscribe(observerB);
+            // }, 1000);
+
+            // setTimeout(() => {
+            //   subscriptionA.unsubscribe();
+            //   subscriptionB.unsubscribe();
+            //   // 這裡雖然 A 跟 B 都退訂了，但 source 還會繼續送元素
+            // }, 5000);
+
+            // setTimeout(() => {
+            //   realSubscription.unsubscribe();
+            //   // 這裡 source 才會真正停止送元素
+            // }, 7000);
+
+            var source = Rx.Observable.interval(1000)
+              .do((x) => console.log("send: " + x))
+              .multicast(new Rx.Subject())
+              .refCount();
+
+            var observerA = {
+              next: (value) => console.log("A next: " + value),
+              error: (error) => console.log("A error: " + error),
+              complete: () => console.log("A complete!"),
+            };
+
+            var observerB = {
+              next: (value) => console.log("B next: " + value),
+              error: (error) => console.log("B error: " + error),
+              complete: () => console.log("B complete!"),
+            };
+
+            var subscriptionA = source.subscribe(observerA);
+            // 訂閱數 0 => 1
+
+            var subscriptionB;
+            setTimeout(() => {
+              subscriptionB = source.subscribe(observerB);
+              // 訂閱數 0 => 2
+            }, 1000);
+            setTimeout(() => {
+              subscriptionA.unsubscribe(); // 訂閱數 2 => 1
+              subscriptionB.unsubscribe(); // 訂閱數 1 => 0，source 停止發送元素
+            }, 5000);
+            /**
+             * 上面这段程式码，当source 一被observerA 订阅时(订阅数从0 变成1)，就会立即执行并发送元素，我们就不需要再额外执行connect。
+      同样的在退订时只要订阅数变成0 就会自动停止发送
+
+      其实 multicast(new Rx.Subject()) 很常用到，我们有一个简化的写法那就是publish，下面这两段程式码是完全等价的
+
+      var source = Rx.Observable.interval(1000)
+                   .publish()
+                   .refCount();
+
+       var source = Rx.Observable.interval(1000)
+             .publishReplay(1)
+             .refCount();
+      var source = Rx.Observable.interval(1000)
+             .publishBehavior(0)
+             .refCount();
+      var source = Rx.Observable.interval(1000)
+             .publishLast()
+             .refCount();
+      var source = Rx.Observable.interval(1000)
+             .share();
+             * /
+    </script>
+  </body>
+</html>

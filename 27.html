@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>简易实作Observable(一)</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/5.0.1/Rx.min.js"></script>
+  </head>
+
+  <body>
+    <script>
+      // subscriber 是一个函数
+      // function create(subscriber) {
+      //   var observable = {
+      //     subscribe: function (observer) {
+      //       subscriber(observer);
+      //     },
+      //   };
+      //   return observable;
+      // }
+
+      // var observable = create(function (observer) {
+      //   observer.next(1);
+      //   observer.next(2);
+      //   observer.next(3);
+      // });
+
+      // var observer = {
+      //   next: function (value) {
+      //     console.log(value);
+      //   },
+      // };
+
+      // observable.subscribe(observer);
+
+      // var observable = create(function (observer) {
+      //   observer.next(1);
+      //   observer.next(2);
+      //   observer.next(3);
+      //   observer.complete();
+      //   observer.next("still work");
+      // });
+
+      // var observer = {
+      //   next: function (value) {
+      //     console.log(value);
+      //   },
+      //   complete: function () {
+      //     console.log("complete!");
+      //   },
+      // };
+
+      // observable.subscribe(observer);
+
+      // var observable = create(function (observer) {
+      //   observer.next(1);
+      //   observer.next(2);
+      //   observer.next(3);
+      //   observer.complete(); // error: complete is not a function
+      // });
+
+      // var observer = {
+      //   next: function (value) {
+      //     console.log(value);
+      //   },
+      // };
+
+      // observable.subscribe(observer);
+      // 預設空的 observer
+      const emptyObserver = {
+        next: () => {},
+        error: (err) => {
+          throw err;
+        },
+        complete: () => {},
+      };
+
+      class Observer {
+        constructor(destinationOrNext, error, complete) {
+          switch (arguments.length) {
+            case 0:
+              // 空的 observer
+              // 空的 observer
+              this.destination = this.safeObserver(emptyObserver);
+              break;
+            case 1:
+              if (!destinationOrNext) {
+                // 空的 observer
+                // 空的 observer
+                this.destination = this.safeObserver(emptyObserver);
+                break;
+              }
+              if (destinationOrNext instanceof Observer) {
+                this.destination = destinationOrNext;
+                break;
+              }
+              if (typeof destinationOrNext === "object") {
+                // 傳入了 observer 物件
+                // 傳入了 observer 物件
+                this.destination = this.safeObserver(destinationOrNext);
+                break;
+              }
+              break;
+
+            default:
+              // 如果上面都不是，代表應該是傳入了一到三個 function
+              this.destination = this.safeObserver(
+                destinationOrNext,
+                error,
+                complete
+              );
+              break;
+          }
+        }
+        safeObserver(observerOrNext, error, complete) {
+          let next;
+          if (typeof observerOrNext === "function") {
+            next = observerOrNext;
+          } else if (observerOrNext) {
+            next = observerOrNext.next || function () {};
+            error =
+              observerOrNext.error ||
+              function (err) {
+                throw err;
+              };
+            complete = observerOrNext.complete || function () {};
+          }
+          // 最後回傳我們預期的 observer 物件
+          return {
+            next: next,
+            error: error,
+            complete: complete,
+          };
+        }
+        next(value) {
+          if (!this.isStopped && this.next) {
+            // 先判斷是否停止過
+            try {
+              this.destination.next(value); // 傳送值
+            } catch (err) {
+              this.unsubscribe();
+              throw err;
+            }
+          }
+        }
+        error(err) {
+          if (!this.isStopped && this.error) {
+            // 先判斷是否停止過
+            try {
+              this.destination.error(err); // 傳送錯誤
+            } catch (anotherError) {
+              this.unsubscribe();
+              throw anotherError;
+            }
+            this.unsubscribe();
+          }
+        }
+
+        complete() {
+          if (!this.isStopped && this.complete) {
+            // 先判斷是否停止過
+            try {
+              this.destination.complete(); // 發送停止訊息
+            } catch (err) {
+              this.unsubscribe();
+              throw err;
+            }
+            this.unsubscribe(); // 發送停止訊息後退訂
+          }
+        }
+
+        unsubscribe() {
+          this.isStopped = true; // 偷塞一個屬性 isStopped
+        }
+      }
+      function create(subscriber) {
+        const observable = {
+          subscribe: function (observerOrNext, error, complete) {
+            const realObserver = new Observer(observerOrNext, error, complete);
+            subscriber(realObserver);
+            return realObserver;
+          },
+        };
+        return observable;
+      }
+
+      class MapObserver extends Observer {
+        constructor(observer, callback) {
+          // 這裡會傳入原本的 observer 跟 map 的 callback
+          super(observer); // 因為有繼承所以要先執行一次父層的建構式
+          this.callback = callback; // 保存 callback
+          this.next = this.next.bind(this); // 確保 next 的 this
+        }
+        next(value) {
+          try {
+            this.destination.next(this.callback(value));
+            // this.destination 是父層 Observer 保存的 observer 物件
+            // 這裡 this.callback(value) 就是 map 的操作
+          } catch (err) {
+            this.destination.error(err);
+            return;
+          }
+        }
+      }
+
+      // var observable = create(function (observer) {
+      //   observer.next(1);
+      //   observer.next(2);
+      //   observer.next(3);
+      //   observer.complete();
+      //   observer.next("not work");
+      // });
+
+      // var observer = {
+      //   next: function (value) {
+      //     console.log(value);
+      //   },
+      //   complete: function () {
+      //     console.log("complete!");
+      //   },
+      // };
+
+      // observable.subscribe(observer);
+
+      class Observable {
+        constructor(subscribe) {
+          if (subscribe) {
+            this._subscribe = subscribe; // 把 subscribe 存到 _subscribe 屬性中
+          }
+        }
+        subscribe() {
+          const observer = new Observer(...arguments);
+          // 先做某個判斷是否當前的 observable 是具有 operator 的
+          if (this.operator) {
+            // 用 operator 的操作
+            this.operator.call(observer, this.source);
+          } else {
+            // 如果沒有 operator 再直接把 observer 丟給 _subscribe
+            this._subscribe(observer);
+          }
+          return observer;
+        }
+        map(callback) {
+          const observable = new Observable(); // 建立新的 observable
+
+          observable.source = this; // 保存當前的 observable(資料源)
+
+          observable.operator = {
+            call: (observer, source) => {
+              // 執行這個 operator 的行為
+              const newObserver = new MapObserver(observer, callback);
+              // 建立包裹後的 observer
+              // 訂閱原本的資料源，並回傳
+              return source.subscribe(newObserver);
+            },
+            // 執行這個 operator 的行為 }
+          }; // 儲存當前 operator 行為，並作為是否有 operator 的依據，
+
+          return observable; // 返回這個新的 observable
+        }
+      }
+      Observable.create = function (subscribe) {
+        return new Observable(subscribe);
+      };
+
+      var observable = new Observable(function (observer) {
+        observer.next(1);
+        observer.next(2);
+        observer.next(3);
+        observer.complete();
+        observer.next("not work");
+      });
+
+      var observer = {
+        next: function (value) {
+          console.log(value);
+        },
+        complete: function () {
+          console.log("complete!");
+        },
+      };
+
+      // observable.subscribe(observer);
+      var observable2 = Observable.create(function (observer) {
+        observer.next(11);
+        observer.next(21);
+        observer.next(31);
+        observer.complete();
+        observer.next("not work");
+      });
+      // observable2.subscribe(observer);
+
+      // 建立靜態方法
+      Observable.fromArray = function (array) {
+        if (!Array.isArray(array)) {
+          // 如果傳入的參數不是陣列，則拋出例外
+          throw new Error("params need to be an array");
+        }
+        return new Observable(function (observer) {
+          try {
+            // 遍歷每個元素並送出
+            array.forEach((value) => observer.next(value));
+            observer.complete();
+          } catch (err) {
+            observer.error(err);
+          }
+        });
+      };
+
+      var observable3 = Observable.fromArray([1, 2, 3, 4, 5]);
+      observable3.subscribe(observer);
+    </script>
+  </body>
+</html>
